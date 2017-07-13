@@ -1,5 +1,6 @@
 library(Lahman)
 library(RODBC)
+library(ggplot2)
 require(dyplr)
 
 query = "SELECT [playerID]
@@ -24,20 +25,12 @@ query = "SELECT [playerID]
           group by [playerID],[yearID]"
 
 
-
-
 dbhandle <- odbcDriverConnect('driver={SQL Server};server=DESKTOP-PM6C8DF\\SQLEXPRESS;database=lahman;trusted_connection=true')
 res <- sqlQuery(dbhandle, query)
-res[res$yearID == 2013,]
+#res[res$yearID == 2013,]
+
+ggplot(aes(x = num_positions), data = res) +
+  geom_histogram(binwidth = 1)
 
 
 
-data(Fielding)
-subset(Fielding, yearID == 2013) %>%
-  group_by(playerID, yearID) %>%
-  summarise(num_stints = max(stint), num_positions = sum(!is.na(POS)),
-            G = sum(G), GS = sum(ifelse(is.na(GS), 0, GS)), InnOuts = sum(InnOuts), PO = sum(PO),
-            A = sum(A), E = sum(E), DP = sum(DP), PB = sum(PB), WP = sum(WP),
-            SB = sum(SB), CS = sum(CS), ZR = sum(ZR))
-
-subset(Fielding, yearID == 2013 & playerID == 'abreuto01')

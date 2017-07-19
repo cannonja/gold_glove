@@ -58,8 +58,11 @@ plot_histogram <- function(var, df) {
   
   ggplot(aes_string(x = toString(var)), data = df) +
     geom_histogram(binwidth = 25) +
-    geom_vline(aes(xintercept=median(df[[toString(var)]])),
-               color = "red", linetype="solid", size=1) +
+    geom_vline(aes(xintercept=median(df[[toString(var)]]),
+               color = "median"), linetype="solid", size=1) +
+    geom_vline(aes(xintercept=mean(df[[toString(var)]]),
+               color = "mean"), linetype="solid", size=1) +    
+    scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
     scale_x_continuous(breaks = seq(0, max(df[toString(var)]), 25), minor_breaks = NULL) +
     theme(axis.text.x = element_text(angle=90))
   

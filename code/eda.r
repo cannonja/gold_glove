@@ -1,4 +1,3 @@
-library(Lahman)
 library(RODBC)
 library(ggplot2)
 require(dyplr)
@@ -7,13 +6,13 @@ query = "SELECT f.playerID
             ,f.yearID
             ,max(f.stint) as num_stints
             ,count(f.POS) as num_positions
-            ,sum(f.G) as games
+            ,sum(coalesce(f.G, 0)) as games
             ,sum(coalesce(f.GS, 0)) as games_started
             ,sum(coalesce(f.InnOuts, 0)) as outs_played
-            ,sum(f.PO) as put_outs
-            ,sum(f.A) as assists
-            ,sum(f.E) as errors
-            ,sum(f.DP) as double_plays
+            ,sum(coalesce(f.PO, 0)) as put_outs
+            ,sum(coalesce(f.A, 0)) as assists
+            ,sum(coalesce(f.E, 0)) as errors
+            ,sum(coalesce(f.DP, 0)) as double_plays
             ,sum(coalesce(f.PB, 0)) as passed_balls
             ,sum(coalesce(f.WP, 0)) as wild_pitches
             ,sum(coalesce(f.SB, 0)) as opponent_stolen_bases
@@ -33,7 +32,7 @@ plot_histogram <- function(var, df) {
   
   ggplot(aes_string(x = toString(var)), data = df) +
     geom_histogram(binwidth = 1) +
-    scale_x_continuous(breaks = seq(1, max(res[toString(var)])))
+    scale_x_continuous(breaks = seq(1, max(df[toString(var)])))
   
 }
 
@@ -49,16 +48,20 @@ dbhandle <- if (Sys.info()['nodename'] == "FD63STA001756") {
 
 res <- sqlQuery(dbhandle, query)
 
+plot_histogram("num_positions", res)
+plot_histogram("outs_played", res)
+plot_histogram("outs_played", res[res$won_gg == 1,])
+plot_histogram("num_positions", res[res$won_gg == 1,])
 
 
 
 
 
 
-ggplot(aes(x = num_positions), data = res) +
-  geom_histogram(binwidth = 1) +
-  scale_x_continuous(breaks = seq(1, max(res$num_positions))) +
-  facet_wrap(~won_gg)
+# ggplot(aes(x = num_positions), data = res) +
+#   geom_histogram(binwidth = 1) +
+#   scale_x_continuous(breaks = seq(1, max(res$num_positions))) +
+#   facet_wrap(~won_gg)
 
 
 

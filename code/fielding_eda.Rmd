@@ -1,0 +1,104 @@
+---
+title: "Lahman Fielding EDA"
+output: html_document
+---
+
+<!-- # ```{r setup, include=FALSE} -->
+<!-- # knitr::opts_chunk$set(echo = TRUE) -->
+<!-- # ``` -->
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Check for required packages
+#required <- c("RODBC", "ggplot2")
+# installed <- names(installed.packages()[, "Package"])
+# matches <- match(needed, installed)
+
+# for (i in required) {
+#   if(!require(i)){
+#     print(paste("Loading ", i))
+#     install.packages(i)
+#   }
+#   library(i)
+# }
+
+
+library(RODBC)
+library(ggplot2)
+
+
+query = "SELECT f.playerID
+            ,f.yearID
+            ,max(f.stint) as num_stints
+            ,count(f.POS) as num_positions
+            ,sum(coalesce(f.G, 0)) as games
+            ,sum(coalesce(f.GS, 0)) as games_started
+            ,sum(coalesce(f.InnOuts, 0)) as outs_played
+            ,sum(coalesce(f.PO, 0)) as put_outs
+            ,sum(coalesce(f.A, 0)) as assists
+            ,sum(coalesce(f.E, 0)) as errors
+            ,sum(coalesce(f.DP, 0)) as double_plays
+            ,sum(coalesce(f.PB, 0)) as passed_balls
+            ,sum(coalesce(f.WP, 0)) as wild_pitches
+            ,sum(coalesce(f.SB, 0)) as opponent_stolen_bases
+            ,sum(coalesce(f.CS, 0)) as opponent_caught_stealing
+            ,sum(coalesce(f.ZR, 0)) as zone_rating
+            ,max(case when f.POS = 'C' then 1 else 0 end) as is_catcher
+            ,max(case when f.POS = 'P' then 1 else 0 end) as is_pitcher
+            ,max(case when ap.awardID is null then 0 else 1 end) as won_gg
+        FROM Fielding as f
+        left join AwardsPlayers as ap 
+          on f.playerID = ap.playerID
+          and f.yearID = ap.yearID
+          and ap.awardID = 'Gold Glove'
+        group by f.playerID, f.yearID"
+
+plot_histogram <- function(var, df) {
+  
+  ggplot(aes_string(x = toString(var)), data = df) +
+    geom_histogram(binwidth = 25) +
+    geom_vline(aes(xintercept=median(df[[toString(var)]])),
+               color = "red", linetype="solid", size=1) +
+    scale_x_continuous(breaks = seq(0, max(df[toString(var)]), 25), minor_breaks = NULL) +
+    theme(axis.text.x = element_text(angle=90))
+  
+}
+
+dbhandle <- if (Sys.info()['nodename'] == "FD63STA001756") {
+  
+  odbcDriverConnect('driver={SQL Server};server=FD63STA001756\\JAC2;database=lahman;trusted_connection=true')
+
+} else {
+     
+  odbcDriverConnect('driver={SQL Server};server=DESKTOP-PM6C8DF\\SQLEXPRESS;database=lahman;trusted_connection=true')
+
+}
+
+res <- sqlQuery(dbhandle, query)
+var <- "assists"
+```
+
+
+
+### Popluation Summary
+```{r echo=FALSE}
+summary(res[[var]])
+```
+
+```{r echo=FALSE}
+plot_histogram(var, res)
+```
+
+
+### Gold Glove Summary
+```{r echo=FALSE}
+summary(res[res$won_gg == 1, var])
+```
+```{r echo=FALSE}
+plot_histogram(var, res[res$won_gg == 1,])
+
+```
+
+
+
+

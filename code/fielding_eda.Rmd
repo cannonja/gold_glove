@@ -1,5 +1,6 @@
 ---
 title: "Lahman Fielding EDA"
+runtime: shiny
 output: html_document
 ---
 
@@ -87,6 +88,20 @@ var <- "assists"
 ### Popluation Summary
 ```{r echo=FALSE}
 summary(res[[var]])
+```
+
+
+```{r echo = FALSE}
+
+checkboxInput("year_range", label = "Multi Year", value = FALSE)
+
+conditionalPanel(condition = "input.year_range",
+                 sliderInput("years", label = "Select Year Range", min  = min(res$yearID), max = max(res$yearID),
+                 value = c(2000, 2016), step = 1, sep = ""))
+
+conditionalPanel(condition = "!input.year_range",
+                 selectInput("years", label = "Select Year", choices = seq(min(res$yearID), max(res$yearID))))
+
 ```
 
 ```{r echo=FALSE}

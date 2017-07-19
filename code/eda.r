@@ -26,6 +26,7 @@ query = "SELECT f.playerID
           on f.playerID = ap.playerID
           and f.yearID = ap.yearID
           and ap.awardID = 'Gold Glove'
+        where f.yearID >= 1957
         group by f.playerID, f.yearID"
 
 plot_histogram <- function(var, df) {

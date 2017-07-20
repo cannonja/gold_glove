@@ -28,7 +28,6 @@ for (i in required) {
   
 }
 
-
 query = "SELECT f.playerID
             ,f.yearID
             ,max(f.stint) as num_stints
@@ -74,13 +73,13 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
 
 dbhandle <- if (Sys.info()['nodename'] == "FD63STA001756") {
   
-  odbcDriverConnect('driver={SQL Server};server=FD63STA001756\\JAC2;database=lahman;trusted_connection=true')
-
-} else {
-     
-  odbcDriverConnect('driver={SQL Server};server=DESKTOP-PM6C8DF\\SQLEXPRESS;database=lahman;trusted_connection=true')
-
-}
+              odbcDriverConnect('driver={SQL Server};server=FD63STA001756\\JAC2;database=lahman;trusted_connection=true')
+            
+            } else {
+                 
+              odbcDriverConnect('driver={SQL Server};server=DESKTOP-PM6C8DF\\SQLEXPRESS;database=lahman;trusted_connection=true')
+            
+            }
 
 res <- sqlQuery(dbhandle, query)
 res$labels = factor(res$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))

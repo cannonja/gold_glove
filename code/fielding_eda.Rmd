@@ -11,21 +11,22 @@ output: html_document
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # Check for required packages
-#required <- c("RODBC", "ggplot2")
-# installed <- names(installed.packages()[, "Package"])
-# matches <- match(needed, installed)
+required <- c("RODBC", "ggplot2")
+installed <- names(installed.packages()[, "Package"])
 
-# for (i in required) {
-#   if(!require(i)){
-#     print(paste("Loading ", i))
-#     install.packages(i)
-#   }
-#   library(i)
-# }
-
-
-library(RODBC)
-library(ggplot2)
+for (i in required) {
+  
+  rt <- paste("require(", i, ")", sep="")
+  lt <- paste("library(", i, ")", sep="")
+  
+  if(!eval(parse(text=rt))){
+    print(paste("Loading ", i))
+    install.packages(i, repos = "http://cran.us.r-project.org")
+  }
+  
+  eval(parse(text = lt))  
+  
+}
 
 
 query = "SELECT f.playerID

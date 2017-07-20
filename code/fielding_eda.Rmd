@@ -1,5 +1,4 @@
 ---
-title: "Lahman Fielding EDA"
 runtime: shiny
 output: html_document
 ---
@@ -66,7 +65,7 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
     geom_vline(aes(xintercept=mean(df[[toString(var)]]),
                color = "mean"), linetype="solid", size=1) +    
     scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
-    scale_x_continuous(breaks = seq(0, x_max, bw), minor_breaks = NULL) +
+    scale_x_continuous(breaks = seq(0, x_max, bw), minor_breaks = NULL, expand = c(0,0)) +
     theme(axis.text.x = element_text(angle=90))
   
 }
@@ -92,74 +91,94 @@ res$labels = factor(res$won_gg, levels = c("0", "1"), labels = c("Population", "
 #summary(res[[var]])
 ```
 
-
+## Lahman Fielding EDA
 ```{r echo = FALSE}
 
 fielding_stats <- c("num_stints", "num_positions", "games", "games_started", "outs_played", "put_outs",
                     "assists", "errors", "double_plays", "passed_balls", "wild_pitches", "opponent_stolen_bases",
                     "opponent_caught_stealing", "zone_rating")
-
-selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats, selected = "assists")
-
-
-checkboxInput("year_range", label = "Multi Year", value = FALSE)
-
-conditionalPanel(condition = "input.year_range",
-                 sliderInput("years", label = "Select Year Range", min  = min(res$yearID), max = max(res$yearID),
-                 value = c(2000, 2016), step = 1, sep = ""))
-
-conditionalPanel(condition = "!input.year_range",
-                 selectInput("year", label = "Select Year", choices = seq(min(res$yearID), max(res$yearID)),
-                             selected = 2000))
-
-sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1)
+fluidPage(
+  
+  fluidRow(
+    
+    column(4, selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats, selected = "assists"),
+           verbatimTextOutput("pop_plot_hover")),
+    
+    column(4,
+           
+           checkboxInput("year_range", label = "Multi Year", value = FALSE),
+    
+          conditionalPanel(condition = "input.year_range",
+                           sliderInput("years", label = "Select Year Range", min  = min(res$yearID), max = max(res$yearID),
+                           value = c(2000, 2016), step = 1, sep = "")),
+          
+          conditionalPanel(condition = "!input.year_range",
+                           selectInput("year", label = "Select Year", choices = seq(min(res$yearID), max(res$yearID)),
+                                       selected = 2000))),
+    
+    column(4, br(), sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1))
+  ),
+  
+  fluidRow(
+    
+    column(12, plotOutput("pop_plot", hover = hoverOpts(id = "pop_hover")), 
+    
+    #column(width = 3, verbatimTextOutput("pop_plot_hover")),
+    
+    plotOutput("gg_plot"))
+  )
+    
+)
 
 
 
 ```
 
 
-## Popluation
+
 ```{r echo = FALSE}
 
-renderPlot({
+output$pop_plot <- renderPlot({
   
-  df_in <- if (input$year_range) {
-    
-            subset(res, yearID >= input$years[1] & yearID <= input$years[2])
-            
-          } else {
-            
-            subset(res, yearID == input$year)
-            
-          }
-  
-  plot_histogram(input$f_stat, df_in, input$bin_width)
-  
-})
+                    df_in <- if (input$year_range) {
+                      
+                              subset(res, yearID >= input$years[1] & yearID <= input$years[2])
+                              
+                            } else {
+                              
+                              subset(res, yearID == input$year)
+                              
+                            }
+                    
+                    plot_histogram(input$f_stat, df_in, input$bin_width)
+                    
+                  })
+
+output$pop_plot_hover <- renderPrint(str(input$pop_hover$x + (input$bin_width / 2)))
 
 ```
 
-## Gold Glove Winners
+
 ```{r echo = FALSE}
 
-renderPlot({
-  
-  df_in <- if (input$year_range) {
-    
-            subset(res, yearID >= input$years[1] & yearID <= input$years[2])
-            
-          } else {
-            
-            subset(res, yearID == input$year)
-            
-          }  
-  
-  pop_max <- max(subset(df_in, won_gg == 1, select = input$f_stat))
+output$gg_plot <- renderPlot({
 
-  plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
+                    df_in <- if (input$year_range) {
+                  
+                              subset(res, yearID >= input$years[1] & yearID <= input$years[2])
+                  
+                            } else {
+                  
+                              subset(res, yearID == input$year)
+                  
+                            }
+                  
+                    pop_max <- max(subset(df_in, won_gg == 1, select = input$f_stat))
+                  
+                    plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
+                  
+                  })
 
-})
 
 ```
 

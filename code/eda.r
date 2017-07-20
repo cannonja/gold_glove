@@ -58,11 +58,12 @@ plot_histogram("num_positions", res[res$won_gg == 1,])
 
 
 
+res$labels = factor(res$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
+ggplot(aes(x = num_positions), data = res) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = seq(1, max(res$num_positions))) +
+  facet_wrap(~labels, scales = "free_y", ncol = 1)
 
-# ggplot(aes(x = num_positions), data = res) +
-#   geom_histogram(binwidth = 1) +
-#   scale_x_continuous(breaks = seq(1, max(res$num_positions))) +
-#   facet_wrap(~won_gg)
 
 
 

@@ -62,6 +62,8 @@ res$labels = factor(res$won_gg, levels = c("0", "1"), labels = c("Population", "
 ggplot(aes(x = num_positions), data = res) +
   geom_histogram(binwidth = 1) +
   scale_x_continuous(breaks = seq(1, max(res$num_positions))) +
+  geom_vline(aes(xintercept=median(res$num_positions),
+                 color = "median"), linetype="solid", size=1) +
   facet_wrap(~labels, scales = "free_y", ncol = 1)
 
 

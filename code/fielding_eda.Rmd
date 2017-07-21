@@ -40,8 +40,10 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
     geom_vline(aes(xintercept=mean(df[[toString(var)]]),
                color = "mean"), linetype="solid", size=1) +    
     scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
-    coord_cartesian(xlim = c(-bw, pop_max + bw)) +
-    scale_x_continuous(breaks = seq(0, pop_max + bw, bw), minor_breaks = NULL, expand = c(0,0)) +
+    coord_cartesian(xlim = c(0, pop_max)) +
+    #ylim(0, NA) +
+    scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw)) +
+    #scale_y_continuous(expand = c(0.2,0)) +
     theme(axis.text.x = element_text(angle=90), legend.position = c(.9,.9))
   
 }

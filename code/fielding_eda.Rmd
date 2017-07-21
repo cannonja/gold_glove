@@ -27,32 +27,7 @@ for (i in required) {
   
 }
 
-query = "SELECT f.playerID
-            ,f.yearID
-            ,max(f.stint) as num_stints
-            ,count(f.POS) as num_positions
-            ,sum(coalesce(f.G, 0)) as games
-            ,sum(coalesce(f.GS, 0)) as games_started
-            ,sum(coalesce(f.InnOuts, 0)) as outs_played
-            ,sum(coalesce(f.PO, 0)) as put_outs
-            ,sum(coalesce(f.A, 0)) as assists
-            ,sum(coalesce(f.E, 0)) as errors
-            ,sum(coalesce(f.DP, 0)) as double_plays
-            ,sum(coalesce(f.PB, 0)) as passed_balls
-            ,sum(coalesce(f.WP, 0)) as wild_pitches
-            ,sum(coalesce(f.SB, 0)) as opponent_stolen_bases
-            ,sum(coalesce(f.CS, 0)) as opponent_caught_stealing
-            ,sum(coalesce(f.ZR, 0)) as zone_rating
-            ,max(case when f.POS = 'C' then 1 else 0 end) as is_catcher
-            ,max(case when f.POS = 'P' then 1 else 0 end) as is_pitcher
-            ,max(case when ap.awardID is null then 0 else 1 end) as won_gg
-        FROM Fielding as f
-        left join AwardsPlayers as ap 
-          on f.playerID = ap.playerID
-          and f.yearID = ap.yearID
-          and ap.awardID = 'Gold Glove'
-        where f.yearID >= 1957
-        group by f.playerID, f.yearID"
+query = "SELECT * FROM FIELDING_CONSOLIDATED WHERE yearID >= 1957"
 
 plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   
@@ -93,39 +68,54 @@ res$labels = factor(res$won_gg, levels = c("0", "1"), labels = c("Population", "
 
 ## Lahman Fielding EDA
 ```{r echo = FALSE}
+positions <- c("1B", "2B", "SS", "3B", "C", "P", "OF", "LF", "RF", "CF")
 
-fielding_stats <- c("num_stints", "num_positions", "games", "games_started", "outs_played", "put_outs",
-                    "assists", "errors", "double_plays", "passed_balls", "wild_pitches", "opponent_stolen_bases",
-                    "opponent_caught_stealing", "zone_rating")
+fielding_stats <- c("num_stints", "games", "games_started", "outs_played", "put_outs",
+                    "assists", "errors", "double_plays")
+
+fielding_stats_C <- append(fielding_stats, c("passed_balls", "wild_pitches", "opponent_stolen_bases",
+                                             "opponent_caught_stealing", "opponent_steal_attempts", "weighted_zr"))
+
+fielding_stats_P <- append(fielding_stats, c("wins", "losses", "complete_games", "shutouts", "saves", "hits", "earned_runs",
+                                             "homeruns", "walks", "strikeouts", "intentional_walks", "batters_hit", "balks",
+                                             "batters_faced", "games_finished", "runs_allowed", "batter_sacrifices", "batter_sac_flies",
+                                             "grounded_into_dp"))
+
 fluidPage(
   
   fluidRow(
     
-    column(4, selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats, selected = "assists"),
-           verbatimTextOutput("pop_plot_hover")),
+    column(4, selectInput("pos", label = "Select a position", choices = positions, selected = "SS"),
+           conditionalPanel(condition = "input.pos != 'P' && input.pos != 'C'",
+                            selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats, selected = "assists")),
+           conditionalPanel(condition = "input.pos == 'C'",
+                            selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats_C, selected = "assists")),
+           conditionalPanel(condition = "input.pos == 'P'",
+                            selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats_P, selected = "assists"))),          
+           
+           
+           
+           #verbatimTextOutput("pop_plot_hover")),
     
     column(4,
-           
            checkboxInput("year_range", label = "Multi Year", value = FALSE),
-    
-          conditionalPanel(condition = "input.year_range",
-                           sliderInput("years", label = "Select Year Range", min  = min(res$yearID), max = max(res$yearID),
-                           value = c(2000, 2016), step = 1, sep = "")),
-          
-          conditionalPanel(condition = "!input.year_range",
-                           selectInput("year", label = "Select Year", choices = seq(min(res$yearID), max(res$yearID)),
-                                       selected = 2000))),
+           conditionalPanel(condition = "input.year_range",
+                            sliderInput("years", label = "Select Year Range", min  = min(res$yearID), max = max(res$yearID),
+                                        value = c(2000, 2016), step = 1, sep = "")),
+           conditionalPanel(condition = "!input.year_range",
+                            selectInput("year", label = "Select Year", choices = seq(min(res$yearID), max(res$yearID)),
+                                        selected = 2000))),
     
     column(4, br(), sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1))
   ),
   
   fluidRow(
     
-    column(12, plotOutput("pop_plot", hover = hoverOpts(id = "pop_hover")), 
+    column(12, plotOutput("pop_plot")),#, hover = hoverOpts(id = "pop_hover")), 
     
     #column(width = 3, verbatimTextOutput("pop_plot_hover")),
     
-    plotOutput("gg_plot"))
+    plotOutput("gg_plot")
   )
     
 )
@@ -140,37 +130,28 @@ fluidPage(
 
 output$pop_plot <- renderPlot({
   
+                    pos <- switch(input$pos, P = "P", C = "C", subset(positions, !(positions %in% c("P", "C"))))
+
                     df_in <- if (input$year_range) {
-                      
-                              subset(res, yearID >= input$years[1] & yearID <= input$years[2])
-                              
+                              subset(res, yearID >= input$years[1] & yearID <= input$years[2] & position %in% pos)
                             } else {
-                              
-                              subset(res, yearID == input$year)
-                              
+                              subset(res, yearID == input$year & position %in% pos)
                             }
                     
                     plot_histogram(input$f_stat, df_in, input$bin_width)
                     
                   })
 
-output$pop_plot_hover <- renderPrint(str(input$pop_hover$x + (input$bin_width / 2)))
-
-```
-
-
-```{r echo = FALSE}
+#output$pop_plot_hover <- renderPrint(str(input$pop_hover$x + (input$bin_width / 2)))
 
 output$gg_plot <- renderPlot({
+  
+                    pos <- switch(input$pos, P = "P", C = "C", subset(positions, !(positions %in% c("P", "C"))))
 
                     df_in <- if (input$year_range) {
-                  
-                              subset(res, yearID >= input$years[1] & yearID <= input$years[2])
-                  
+                              subset(res, yearID >= input$years[1] & yearID <= input$years[2] & position %in% pos)
                             } else {
-                  
-                              subset(res, yearID == input$year)
-                  
+                              subset(res, yearID == input$year & position %in% pos)
                             }
                   
                     pop_max <- max(subset(df_in, won_gg == 1, select = input$f_stat))
@@ -178,6 +159,29 @@ output$gg_plot <- renderPlot({
                     plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
                   
                   })
+
+```
+
+
+```{r echo = FALSE}
+
+# output$gg_plot <- renderPlot({
+# 
+#                     df_in <- if (input$year_range) {
+#                   
+#                               subset(res, yearID >= input$years[1] & yearID <= input$years[2])
+#                   
+#                             } else {
+#                   
+#                               subset(res, yearID == input$year)
+#                   
+#                             }
+#                   
+#                     pop_max <- max(subset(df_in, won_gg == 1, select = input$f_stat))
+#                   
+#                     plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
+#                   
+#                   })
 
 
 ```

@@ -1,3 +1,7 @@
+library(shinythemes)
+
+
+
 required <- c("RODBC", "ggplot2")
 installed <- names(installed.packages()[, "Package"])
 
@@ -29,9 +33,7 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
                    color = "mean"), linetype="solid", size=1) +    
     scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
     coord_cartesian(xlim = c(0, pop_max)) +
-    #ylim(0, NA) +
     scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw)) +
-    #scale_y_continuous(expand = c(0.2,0)) +
     theme(axis.text.x = element_text(angle=90), legend.position = c(.9,.9))
   
 }
@@ -108,39 +110,43 @@ fielding_stats_P <- append(fielding_stats, c("wins", "losses", "complete_games",
 
 ui <- fluidPage(
   
+  titlePanel("Lahman Fielding EDA"),
+  
   fluidRow(
     
-    column(4,
+    column(3,
+    
            selectInput("pos", label = "Select a position", choices = positions, selected = "SS"),
+           br(),
            conditionalPanel(condition = "input.pos != 'P' && input.pos != 'C'",
                             selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats, selected = "assists")),
            conditionalPanel(condition = "input.pos == 'C'",
                             selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats_C, selected = "assists")),
            conditionalPanel(condition = "input.pos == 'P'",
-                            selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats_P, selected = "assists"))),          
-    
-    
-    column(4,
+                            selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats_P, selected = "assists")),
+           
+           br(),
            checkboxInput("year_range", label = "Multi Year", value = FALSE),
+           br(),
            conditionalPanel(condition = "input.year_range",
                             sliderInput("years", label = "Select Year Range", min  = min(res$yearID), max = max(res$yearID),
                                         value = c(2000, 2016), step = 1, sep = "")),
            conditionalPanel(condition = "!input.year_range",
                             selectInput("year", label = "Select Year", choices = seq(min(res$yearID), max(res$yearID)),
-                                        selected = 2000))),
-    
-    column(4,
+                                        selected = 2000)),
            br(),
-           sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1))
-  ),
-  
-  fluidRow(
-    column(12, plotOutput("pop_plot"))),
-  
-  br(),
-  
-  fluidRow(
-    column(12, plotOutput("gg_plot")))
+           sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1),
+           shinythemes::themeSelector()
+    ),
+    
+    column(9,
+      
+          plotOutput("pop_plot"),
+          plotOutput("gg_plot")
+      
+    )
+    
+  )
   
 )
 

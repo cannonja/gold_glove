@@ -83,11 +83,11 @@ data <- if (from_csv) {get_data(csv, from_csv = from_csv)} else {get_data(query)
 data$labels = factor(data$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
 
 #dev
-var <- "assists_per_game"
-bw <- 1
-year = 1957
-data2 <- subset(data, yearID >= year & won_gg == 1)
-plot_histogram(var, data2, bw)
+# var <- "assists_per_game"
+# bw <- 1
+# year = 1957
+# data2 <- subset(data, yearID >= year & won_gg == 1)
+# plot_histogram(var, data2, bw)
 #end dev
 
 

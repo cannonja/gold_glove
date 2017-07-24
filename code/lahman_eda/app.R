@@ -1,25 +1,35 @@
 library(shinythemes)
 
-
+############################# Set script variables #######################################
 
 required <- c("RODBC", "ggplot2")
-installed <- names(installed.packages()[, "Package"])
+from_csv = TRUE
+query = "SELECT * FROM FIELDING_CONSOLIDATED WHERE yearID >= 1957"
+csv = "FIELDING_CONSOLIDATED.csv"
 
-for (i in required) {
+
+
+############################ Define helper functions #####################################
+
+setup_libraries <- function(required) {
   
-  rt <- paste("require(", i, ")", sep="")
-  lt <- paste("library(", i, ")", sep="")
+  installed <- names(installed.packages()[, "Package"])
   
-  if(!eval(parse(text=rt))){
-    print(paste("Loading ", i))
-    install.packages(i, repos = "http://cran.us.r-project.org")
+  for (i in required) {
+    
+    rt <- paste("require(", i, ")", sep="")
+    lt <- paste("library(", i, ")", sep="")
+    
+    if(!eval(parse(text=rt))){
+      print(paste("Loading ", i))
+      install.packages(i, repos = "http://cran.us.r-project.org")
+    }
+    
+    eval(parse(text = lt))  
+    
   }
   
-  eval(parse(text = lt))  
-  
 }
-
-query = "SELECT * FROM FIELDING_CONSOLIDATED WHERE yearID >= 1957"
 
 plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   
@@ -38,18 +48,36 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   
 }
 
-dbhandle <- if (Sys.info()['nodename'] == "FD63STA001756") {
+get_data <- function(query_path, from_csv = FALSE) {
   
-  odbcDriverConnect('driver={SQL Server};server=FD63STA001756\\JAC2;database=lahman;trusted_connection=true')
-  
-} else {
-  
-  odbcDriverConnect('driver={SQL Server};server=DESKTOP-PM6C8DF\\SQLEXPRESS;database=lahman;trusted_connection=true')
+  if (!from_csv) {
+    
+    dbhandle <- if (Sys.info()['nodename'] == "FD63STA001756") {
+      
+      odbcDriverConnect('driver={SQL Server};server=FD63STA001756\\JAC2;database=lahman;trusted_connection=true')
+      
+    } else {
+      
+      odbcDriverConnect('driver={SQL Server};server=DESKTOP-PM6C8DF\\SQLEXPRESS;database=lahman;trusted_connection=true')
+      
+    }
+    
+    sqlQuery(dbhandle, query_path)
+    
+  } else {
+    
+    read.csv(query_path, header = TRUE)
+    
+  }
   
 }
 
-res <- sqlQuery(dbhandle, query)
-res$labels = factor(res$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
+
+
+################################ Start App code ##########################################
+
+data <- if (from_csv) {get_data(csv, from_csv = from_csv)} else {get_data(query)}
+data$labels = factor(res$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
 
 
 server <- function(input, output) {
@@ -87,8 +115,6 @@ server <- function(input, output) {
 }
 
 
-
-
 positions <- c("1B", "2B", "SS", "3B", "C", "P", "OF", "LF", "RF", "CF")
 
 fielding_stats <- c("num_stints", "games", "games_started", "outs_played", "put_outs",
@@ -101,11 +127,6 @@ fielding_stats_P <- append(fielding_stats, c("wins", "losses", "complete_games",
                                              "homeruns", "walks", "strikeouts", "intentional_walks", "batters_hit", "balks",
                                              "batters_faced", "games_finished", "runs_allowed", "batter_sacrifices", "batter_sac_flies",
                                              "grounded_into_dp"))
-
-
-
-
-
 
 
 ui <- fluidPage(
@@ -149,7 +170,6 @@ ui <- fluidPage(
   )
   
 )
-
 
 
 shinyApp(ui = ui, server = server)

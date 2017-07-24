@@ -36,15 +36,17 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   pop_max <- if (is.null(x_max)) {max(df[toString(var)])} else {x_max}
   
   ggplot(aes_string(x = toString(var)), data = df) +
+    #geom_density() +
     geom_histogram(binwidth = bw, color = "black", fill = "#099DD9") +
-    geom_vline(aes(xintercept=median(df[[toString(var)]]),
-                   color = "median"), linetype="solid", size=1) +
-    geom_vline(aes(xintercept=mean(df[[toString(var)]]),
-                   color = "mean"), linetype="solid", size=1) +    
+    # geom_vline(aes(xintercept=median(df[[toString(var)]]),
+    #                color = "median"), linetype="solid", size=1) +
+    # geom_vline(aes(xintercept=mean(df[[toString(var)]]),
+    #                color = "mean"), linetype="solid", size=1) +    
     scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
     coord_cartesian(xlim = c(0, pop_max)) +
     scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw)) +
-    theme(axis.text.x = element_text(angle=90), legend.position = c(.9,.9))
+    theme(axis.text.x = element_text(angle=90), legend.position = c(.9,.9),
+          panel.background = element_rect(fill = NA))
   
 }
 
@@ -79,6 +81,14 @@ get_data <- function(query_path, from_csv = FALSE) {
 setup_libraries(required)
 data <- if (from_csv) {get_data(csv, from_csv = from_csv)} else {get_data(query)}
 data$labels = factor(data$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
+
+#dev
+var <- "assists_per_game"
+bw <- 1
+year = 1957
+data2 <- subset(data, yearID >= year & won_gg == 1)
+plot_histogram(var, data2, bw)
+#end dev
 
 
 server <- function(input, output) {

@@ -76,41 +76,42 @@ get_data <- function(query_path, from_csv = FALSE) {
 
 ################################ Start App code ##########################################
 
+setup_libraries(required)
 data <- if (from_csv) {get_data(csv, from_csv = from_csv)} else {get_data(query)}
-data$labels = factor(res$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
+data$labels = factor(data$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
 
 
 server <- function(input, output) {
   
   output$pop_plot <- renderPlot({
     
-    pos <- input$pos
-    
-    df_in <- if (input$year_range) {
-      subset(res, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
-    } else {
-      subset(res, yearID == input$year & (position %in% pos))
-    }
-    
-    plot_histogram(input$f_stat, df_in, input$bin_width)
-    
-  })
+                        pos <- input$pos
+                        
+                        df_in <- if (input$year_range) {
+                                  subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
+                                } else {
+                                  subset(data, yearID == input$year & (position %in% pos))
+                                }
+                        
+                        plot_histogram(input$f_stat, df_in, input$bin_width)
+                    
+                      })
   
   output$gg_plot <- renderPlot({
     
-    pos <- input$pos
-    
-    df_in <- if (input$year_range) {
-      subset(res, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
-    } else {
-      subset(res, yearID == input$year & (position %in% pos))
-    }
-    
-    pop_max <- max(subset(df_in, select = input$f_stat))
-    
-    plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
-    
-  })  
+                      pos <- input$pos
+                      
+                      df_in <- if (input$year_range) {
+                                subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
+                              } else {
+                                subset(data, yearID == input$year & (position %in% pos))
+                              }
+                      
+                      pop_max <- max(subset(df_in, select = input$f_stat))
+                      
+                      plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
+                      
+                    })  
   
 }
 
@@ -150,10 +151,10 @@ ui <- fluidPage(
            checkboxInput("year_range", label = "Multi Year", value = FALSE),
            br(),
            conditionalPanel(condition = "input.year_range",
-                            sliderInput("years", label = "Select Year Range", min  = min(res$yearID), max = max(res$yearID),
+                            sliderInput("years", label = "Select Year Range", min  = min(data$yearID), max = max(data$yearID),
                                         value = c(2000, 2016), step = 1, sep = "")),
            conditionalPanel(condition = "!input.year_range",
-                            selectInput("year", label = "Select Year", choices = seq(min(res$yearID), max(res$yearID)),
+                            selectInput("year", label = "Select Year", choices = seq(min(data$yearID), max(data$yearID)),
                                         selected = 2000)),
            br(),
            sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1),

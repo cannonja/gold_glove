@@ -123,6 +123,9 @@ server <- function(input, output) {
                       
                     })  
   
+  
+  output$summary <- renderText(by(data$assists, data$won_gg, summary))
+  
 }
 
 
@@ -168,6 +171,10 @@ ui <- fluidPage(
                                         selected = 2000)),
            br(),
            sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1),
+           br(),
+           textOutput("summary"),
+           
+           
            shinythemes::themeSelector()
     ),
     

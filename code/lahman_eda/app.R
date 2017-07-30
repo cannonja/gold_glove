@@ -37,12 +37,14 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   
   ggplot(aes_string(x = toString(var)), data = df) +
     #geom_density() +
-    geom_histogram(binwidth = bw, color = "black", fill = "#099DD9") +
+    geom_histogram(binwidth = bw, color = "black", fill = "#099DD9",
+                   boundary = 0) +
+    #stat_bin(center = bw / 2) +
     # geom_vline(aes(xintercept=median(df[[toString(var)]]),
     #                color = "median"), linetype="solid", size=1) +
     # geom_vline(aes(xintercept=mean(df[[toString(var)]]),
     #                color = "mean"), linetype="solid", size=1) +    
-    scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
+    #scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
     coord_cartesian(xlim = c(0, pop_max)) +
     scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw)) +
     theme(axis.text.x = element_text(angle=90), legend.position = c(.9,.9),
@@ -83,11 +85,17 @@ data <- if (from_csv) {get_data(csv, from_csv = from_csv)} else {get_data(query)
 data$labels = factor(data$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
 
 #dev
-# var <- "assists_per_game"
-# bw <- 1
-# year = 1957
-# data2 <- subset(data, yearID >= year & won_gg == 1)
-# plot_histogram(var, data2, bw)
+var <- "assists"
+bw <- 25
+year = 2000
+data2 <- subset(data, yearID = year & won_gg == 1)
+p <- plot_histogram(var, data2, bw)
+stats <- print(p)$data[[1]]
+
+
+
+
+
 #end dev
 
 

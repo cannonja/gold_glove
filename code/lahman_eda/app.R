@@ -40,13 +40,14 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
     geom_histogram(binwidth = bw, color = "black", fill = "#099DD9",
                    boundary = 0) +
     #stat_bin(center = bw / 2) +
-    # geom_vline(aes(xintercept=median(df[[toString(var)]]),
-    #                color = "median"), linetype="solid", size=1) +
+    geom_vline(aes(xintercept=median(df[[toString(var)]]),
+                   color = "median"), linetype="solid", size=1) +
     # geom_vline(aes(xintercept=mean(df[[toString(var)]]),
     #                color = "mean"), linetype="solid", size=1) +    
     #scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
     coord_cartesian(xlim = c(0, pop_max)) +
     scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw)) +
+    scale_y_continuous(expand = c(0,0)) +
     theme(axis.text.x = element_text(angle=90), legend.position = c(.9,.9),
           panel.background = element_rect(fill = NA))
   
@@ -85,17 +86,12 @@ data <- if (from_csv) {get_data(csv, from_csv = from_csv)} else {get_data(query)
 data$labels = factor(data$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
 
 #dev
-var <- "assists"
-bw <- 25
-year = 2000
-data2 <- subset(data, yearID = year & won_gg == 1)
-p <- plot_histogram(var, data2, bw)
-stats <- print(p)$data[[1]]
-
-
-
-
-
+# var <- "assists"
+# bw <- 25
+# year = 2000
+# data2 <- subset(data, yearID = year & won_gg == 1)
+# p <- plot_histogram(var, data2, bw)
+# stats <- print(p)$data[[1]]
 #end dev
 
 
@@ -132,7 +128,26 @@ server <- function(input, output) {
                     })  
   
   
-  output$summary <- renderText(by(data$assists, data$won_gg, summary))
+  output$summary <- renderTable({
+                      
+                      pos <- input$pos
+                      
+                      df_in <- if (input$year_range) {
+                        subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
+                      } else {
+                        subset(data, yearID == input$year & (position %in% pos))
+                      }
+                      
+                      sdf <- as.data.frame(do.call(cbind, lapply(df_in[-c(1,2,3)], summary)))
+                      
+                      sdf_gg <- as.data.frame(do.call(cbind, lapply(df_in[-c(1,2,3) & df_in$won_gg == 1], summary)))
+                      
+                      cbind(stat = row.names(sdf), subset(sdf, select = input$f_stat))
+    
+    
+                      #summary(subset(data, won_gg == 1, select = input$f_stat))
+    
+                    })
   
 }
 
@@ -180,7 +195,7 @@ ui <- fluidPage(
            br(),
            sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1),
            br(),
-           textOutput("summary"),
+           tableOutput("summary"),
            
            
            shinythemes::themeSelector()

@@ -71,7 +71,17 @@ get_data <- function(query_path, from_csv = FALSE) {
     
   } else {
     
-    read.csv(query_path, header = TRUE)
+    suppressWarnings(tryCatch(read.csv(query_path, header = TRUE), 
+                              error = function(e) {
+                                if (e$message == "cannot open the connection") {
+                                  msg <- "Can't find the csv - make sure your working directory is set to the correct location"
+                                }
+                                else {
+                                  msg <- e$message
+                                }
+                                stop(msg, call. = FALSE)}
+                              )
+                     )
     
   }
   

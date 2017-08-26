@@ -2,7 +2,7 @@ library(shinythemes)
 
 ############################# Set script variables #######################################
 
-required <- c("RODBC", "ggplot2")
+required <- c("RODBC", "ggplot2", "fBasics")
 from_csv = TRUE
 query = "SELECT * FROM FIELDING_CONSOLIDATED WHERE yearID >= 1957"
 csv = "FIELDING_CONSOLIDATED.csv"
@@ -87,6 +87,31 @@ get_data <- function(query_path, from_csv = FALSE) {
   
 }
 
+get_stats <- function(x) {
+  stat_names <- c("Mean", "Median", "SD", "IQR", "Skewness", "Kurtosis")
+  quantiles <- quantile(x)
+  stats <- c(mean(x), 
+             quantiles["50%"], 
+             sd(x), 
+             quantiles["75%"] - quantiles["25%"], 
+             skewness(x),
+             kurtosis(x)
+  )
+  
+  names(stats) <- stat_names
+  stats
+  
+}
+
+
+
+
+
+
+
+
+
+
 
 
 ################################ Start App code ##########################################
@@ -139,24 +164,29 @@ server <- function(input, output) {
   
   
   output$summary <- renderTable({
-                      
+
                       pos <- input$pos
-                      
+
                       df_in <- if (input$year_range) {
                         subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
                       } else {
                         subset(data, yearID == input$year & (position %in% pos))
                       }
                       
-                      sdf <- as.data.frame(do.call(cbind, lapply(df_in[-c(1,2,3)], summary)))
+                      population <- get_stats(subset(df_in, select = input$f_stat)[,1])
+                      gg_winners <- get_stats(subset(df_in, won_gg == 1, select = input$f_stat)[,1])
                       
-                      sdf_gg <- as.data.frame(do.call(cbind, lapply(df_in[-c(1,2,3) & df_in$won_gg == 1], summary)))
-                      
-                      cbind(stat = row.names(sdf), subset(sdf, select = input$f_stat))
-    
-    
+                      data.frame(Population = population, GGWinners = gg_winners, row.names = names(population))
+
+                      # sdf <- as.data.frame(do.call(cbind, lapply(df_in[-c(1,2,3)], summary)))
+                      # 
+                      # sdf_gg <- as.data.frame(do.call(cbind, lapply(df_in[-c(1,2,3) & df_in$won_gg == 1], summary)))
+                      # 
+                      # cbind(stat = row.names(sdf), subset(sdf, select = input$f_stat))
+
+
                       #summary(subset(data, won_gg == 1, select = input$f_stat))
-    
+
                     })
   
 }

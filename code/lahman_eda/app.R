@@ -178,16 +178,11 @@ server <- function(input, output) {
                       
                       data.frame(Population = population, GGWinners = gg_winners, row.names = names(population))
 
-                      # sdf <- as.data.frame(do.call(cbind, lapply(df_in[-c(1,2,3)], summary)))
-                      # 
-                      # sdf_gg <- as.data.frame(do.call(cbind, lapply(df_in[-c(1,2,3) & df_in$won_gg == 1], summary)))
-                      # 
-                      # cbind(stat = row.names(sdf), subset(sdf, select = input$f_stat))
-
-
-                      #summary(subset(data, won_gg == 1, select = input$f_stat))
-
-                    })
+                    },
+                    
+                    hover = TRUE,
+                    rownames = TRUE
+                    )
   
 }
 

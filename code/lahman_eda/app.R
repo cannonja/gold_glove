@@ -34,14 +34,17 @@ setup_libraries <- function(required) {
 plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   
   pop_max <- if (is.null(x_max)) {max(df[toString(var)])} else {x_max}
+  proportion <- "..density.."
   
-  ggplot(aes_string(x = toString(var)), data = df) +
+  ggplot(aes_string(x = toString(var), y = proportion), data = df) +
     #geom_density() +
     geom_histogram(binwidth = bw, color = "black", fill = "#099DD9",
                    boundary = 0) +
+    geom_histogram(binwidth = bw, data = subset(df, won_gg == 1, select = var), color = "black", 
+                   fill = "red", alpha = 0.5, boundary = 0) +
     #stat_bin(center = bw / 2) +
-    geom_vline(aes(xintercept=median(df[[toString(var)]]),
-                   color = "median"), linetype="solid", size=1) +
+    # geom_vline(aes(xintercept=median(df[[toString(var)]]),
+    #                color = "median"), linetype="solid", size=1) +
     # geom_vline(aes(xintercept=mean(df[[toString(var)]]),
     #                color = "mean"), linetype="solid", size=1) +    
     #scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
@@ -121,11 +124,18 @@ data <- if (from_csv) {get_data(csv, from_csv = from_csv)} else {get_data(query)
 data$labels = factor(data$won_gg, levels = c("0", "1"), labels = c("Population", "Gold Glove Winners"))
 
 #dev
+
 # var <- "assists"
 # bw <- 25
 # year = 2000
 # data2 <- subset(data, yearID = year & won_gg == 1)
+# pop_max <- max(data2[toString(var)])
 # p <- plot_histogram(var, data2, bw)
+# p + scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw))
+# p + scale_x_log10()
+# 
+# 
+# 
 # stats <- print(p)$data[[1]]
 #end dev
 
@@ -238,8 +248,8 @@ ui <- fluidPage(
     
     column(9,
       
-          plotOutput("pop_plot"),
-          plotOutput("gg_plot")
+          plotOutput("pop_plot")
+          #plotOutput("gg_plot")
       
     )
     

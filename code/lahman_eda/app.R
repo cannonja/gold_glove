@@ -34,20 +34,12 @@ setup_libraries <- function(required) {
 plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   
   pop_max <- if (is.null(x_max)) {max(df[toString(var)])} else {x_max}
-  proportion <- "..density.."
-  
-  ggplot(aes_string(x = toString(var), y = proportion), data = df) +
-    #geom_density() +
+
+  ggplot(aes_string(x = toString(var), y = quote(..density..)), data = df) +
     geom_histogram(binwidth = bw, color = "black", fill = "#099DD9",
                    boundary = 0) +
     geom_histogram(binwidth = bw, data = subset(df, won_gg == 1, select = var), color = "black", 
                    fill = "red", alpha = 0.5, boundary = 0) +
-    #stat_bin(center = bw / 2) +
-    # geom_vline(aes(xintercept=median(df[[toString(var)]]),
-    #                color = "median"), linetype="solid", size=1) +
-    # geom_vline(aes(xintercept=mean(df[[toString(var)]]),
-    #                color = "mean"), linetype="solid", size=1) +    
-    #scale_color_manual(name  = "Summary Stats", values=c(median = "blue", mean = "red")) +
     coord_cartesian(xlim = c(0, pop_max)) +
     scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw)) +
     scale_y_continuous(expand = c(0,0)) +

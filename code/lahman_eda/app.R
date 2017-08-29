@@ -3,7 +3,7 @@ library(shinythemes)
 ############################# Set script variables #######################################
 
 required <- c("RODBC", "ggplot2", "fBasics")
-from_csv = TRUE
+from_csv = FALSE
 query = "SELECT * FROM FIELDING_CONSOLIDATED WHERE yearID >= 1957"
 csv = "FIELDING_CONSOLIDATED.csv"
 
@@ -43,7 +43,7 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
     coord_cartesian(xlim = c(0, pop_max)) +
     scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw)) +
     scale_y_continuous(expand = c(0,0)) +
-    labs(title = "Histograms",
+    labs(title = "Population Histogram vs Gold Glove Winners",
          y = "Number of Players as a Proportion of the Population") +
     theme(plot.title = element_text(hjust = 0.5),
           axis.text.x = element_text(angle=90), 
@@ -142,6 +142,7 @@ server <- function(input, output) {
   output$pop_plot <- renderPlot({
     
                         pos <- input$pos
+                        var <- switch(pos, C = input$f_statC, P = input$f_statP, input$f_stat)
                         
                         df_in <- if (input$year_range) {
                                   subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
@@ -149,7 +150,7 @@ server <- function(input, output) {
                                   subset(data, yearID == input$year & (position %in% pos))
                                 }
                         
-                        plot_histogram(input$f_stat, df_in, input$bin_width)
+                        plot_histogram(var, df_in, input$bin_width)
                     
                       })
   
@@ -173,6 +174,7 @@ server <- function(input, output) {
   output$summary <- renderTable({
 
                       pos <- input$pos
+                      var <- switch(pos, C = input$f_statC, P = input$f_statP, input$f_stat)
 
                       df_in <- if (input$year_range) {
                         subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
@@ -181,7 +183,7 @@ server <- function(input, output) {
                       }
                       
                       population <- get_stats(subset(df_in, select = input$f_stat)[,1])
-                      gg_winners <- get_stats(subset(df_in, won_gg == 1, select = input$f_stat)[,1])
+                      gg_winners <- get_stats(subset(df_in, won_gg == 1, select = var)[,1])
                       
                       data.frame(Population = population, GGWinners = gg_winners, row.names = names(population))
 
@@ -221,9 +223,9 @@ ui <- fluidPage(
            conditionalPanel(condition = "input.pos != 'P' && input.pos != 'C'",
                             selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats, selected = "assists")),
            conditionalPanel(condition = "input.pos == 'C'",
-                            selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats_C, selected = "assists")),
+                            selectInput("f_statC", label = "Select fielding stat", choices = fielding_stats_C, selected = "assists")),
            conditionalPanel(condition = "input.pos == 'P'",
-                            selectInput("f_stat", label = "Select fielding stat", choices = fielding_stats_P, selected = "assists")),
+                            selectInput("f_statP", label = "Select fielding stat", choices = fielding_stats_P, selected = "assists")),
            
            br(),
            checkboxInput("year_range", label = "Multi Year", value = FALSE),

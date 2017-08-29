@@ -91,9 +91,10 @@ get_data <- function(query_path, from_csv = FALSE) {
 }
 
 get_stats <- function(x) {
-  stat_names <- c("Mean", "Median", "SD", "IQR", "Skewness", "Kurtosis")
+  stat_names <- c("n", "Mean", "Median", "SD", "IQR", "Skewness", "Kurtosis")
   quantiles <- quantile(x)
-  stats <- c(mean(x), 
+  stats <- c(length(x),
+             mean(x), 
              quantiles["50%"], 
              sd(x), 
              quantiles["75%"] - quantiles["25%"], 

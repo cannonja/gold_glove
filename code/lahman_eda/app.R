@@ -43,7 +43,11 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
     coord_cartesian(xlim = c(0, pop_max)) +
     scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw)) +
     scale_y_continuous(expand = c(0,0)) +
-    theme(axis.text.x = element_text(angle=90), legend.position = c(.9,.9),
+    labs(title = "Histograms",
+         y = "Number of Players as a Proportion of the Population") +
+    theme(plot.title = element_text(hjust = 0.5),
+          axis.text.x = element_text(angle=90), 
+          legend.position = c(.9,.9),
           panel.background = element_rect(fill = NA))
   
 }
@@ -233,10 +237,10 @@ ui <- fluidPage(
            br(),
            sliderInput("bin_width", label = "Select Bin Width", min = 1, max = 100, value = c(10), step = 1),
            br(),
-           tableOutput("summary"),
+           tableOutput("summary")
            
            
-           shinythemes::themeSelector()
+           #,shinythemes::themeSelector()
     ),
     
     column(9,

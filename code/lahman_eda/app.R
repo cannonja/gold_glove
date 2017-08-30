@@ -35,7 +35,7 @@ plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   
   pop_max <- if (is.null(x_max)) {max(df[toString(var)])} else {x_max}
 
-  ggplot(aes_string(x = toString(var), y = quote(..density..)), data = df) +
+  ggplot(aes_string(x = toString(var), y = quote(..count../sum(..count..))), data = df) +
     geom_histogram(binwidth = bw, color = "black", fill = "#099DD9",
                    boundary = 0) +
     geom_histogram(binwidth = bw, data = subset(df, won_gg == 1, select = var), color = "black", 

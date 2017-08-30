@@ -130,6 +130,7 @@ data$labels = factor(data$won_gg, levels = c("0", "1"), labels = c("Population",
 # p <- plot_histogram(var, data2, bw)
 # p + scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw))
 # p + scale_x_log10()
+# p + scale_x_sqrt()
 # 
 # 
 # 
@@ -216,7 +217,7 @@ ui <- fluidPage(
   
   fluidRow(
     
-    column(3,
+    column(2,
     
            selectInput("pos", label = "Select a position", choices = positions, selected = "SS"),
            br(),
@@ -229,7 +230,7 @@ ui <- fluidPage(
            
            br(),
            checkboxInput("year_range", label = "Multi Year", value = FALSE),
-           br(),
+           #br(),
            conditionalPanel(condition = "input.year_range",
                             sliderInput("years", label = "Select Year Range", min  = min(data$yearID), max = max(data$yearID),
                                         value = c(2000, 2016), step = 1, sep = "")),
@@ -245,7 +246,7 @@ ui <- fluidPage(
            #,shinythemes::themeSelector()
     ),
     
-    column(9,
+    column(10,
       
           plotOutput("pop_plot")
           #plotOutput("gg_plot")

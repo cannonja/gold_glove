@@ -33,11 +33,11 @@ setup_libraries <- function(required) {
 
 plot_histogram <- function(var, df,  bw = 1, x_max = NULL) {
   
-  #pop_max <- if (is.null(x_max)) {max(df[toString(var)])} else {x_max}
-  pop_max <- if (is.null(x_max)) {max(log10(df[toString(var)] + 1))} else {x_max}
+  pop_max <- if (is.null(x_max)) {max(df[toString(var)])} else {x_max}
+  #pop_max <- if (is.null(x_max)) {max(log10(df[toString(var)] + 1))} else {x_max}
 
-  #ggplot(aes_string(x = toString(var), y = quote(..count../sum(..count..))), data = df) +
-  ggplot(aes_string(x = paste("log10(", var, " + 1)", sep = ""), y = quote(..count../sum(..count..))), data = df) +
+  ggplot(aes_string(x = toString(var), y = quote(..count../sum(..count..))), data = df) +
+  #ggplot(aes_string(x = paste("log10(", var, " + 1)", sep = ""), y = quote(..count../sum(..count..))), data = df) +
     geom_histogram(binwidth = bw, color = "black", fill = "#099DD9",
                    boundary = 0) +
     geom_histogram(binwidth = bw, data = subset(df, won_gg == 1, select = var), color = "black",
@@ -160,21 +160,21 @@ server <- function(input, output) {
                     
                       })
   
-  output$gg_plot <- renderPlot({
-    
-                      pos <- input$pos
-                      
-                      df_in <- if (input$year_range) {
-                                subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
-                              } else {
-                                subset(data, yearID == input$year & (position %in% pos))
-                              }
-                      
-                      pop_max <- max(subset(df_in, select = input$f_stat))
-                      
-                      plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
-                      
-                    })  
+  # output$gg_plot <- renderPlot({
+  #   
+  #                     pos <- input$pos
+  #                     
+  #                     df_in <- if (input$year_range) {
+  #                               subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
+  #                             } else {
+  #                               subset(data, yearID == input$year & (position %in% pos))
+  #                             }
+  #                     
+  #                     pop_max <- max(subset(df_in, select = input$f_stat))
+  #                     
+  #                     plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
+  #                     
+  #                   })  
   
   
   output$summary <- renderTable({

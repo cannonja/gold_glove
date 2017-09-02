@@ -159,24 +159,7 @@ server <- function(input, output) {
                         plot_histogram(var, df_in, input$bin_width)
                     
                       })
-  
-  # output$gg_plot <- renderPlot({
-  #   
-  #                     pos <- input$pos
-  #                     
-  #                     df_in <- if (input$year_range) {
-  #                               subset(data, yearID >= input$years[1] & yearID <= input$years[2] & (position %in% pos))
-  #                             } else {
-  #                               subset(data, yearID == input$year & (position %in% pos))
-  #                             }
-  #                     
-  #                     pop_max <- max(subset(df_in, select = input$f_stat))
-  #                     
-  #                     plot_histogram(input$f_stat, df_in[df_in$won_gg == 1,], input$bin_width, pop_max)
-  #                     
-  #                   })  
-  
-  
+
   output$summary <- renderTable({
 
                       pos <- input$pos

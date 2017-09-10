@@ -124,26 +124,36 @@ data$labels = factor(data$won_gg, levels = c("0", "1"), labels = c("Population",
 
 #dev
 
-# var <- "assists"
-# bw <- 0.2
-# year = 2000
-# data2 <- subset(data, yearID = year)
-# pop_max <- max(data2[toString(var)])
-# p <- plot_histogram(var, data2, bw)
-# p + scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw))
-# p + scale_x_log10()
-# p + scale_x_sqrt()
-# 
-# p + geom_histogram(binwidth = bw, data = subset(data, yearID = year & won_gg == 1, select = var), color = "black", 
-#                fill = "red", alpha = 0.5, boundary = 0)
-# 
-# 
-# 
+var <- "assists"
+bw <- 0.2
+year = 2000
+df <- data[c(var, "won_gg")]
+data2 <- subset(data, yearID = year)
+pop_max <- max(data2[toString(var)])
+p <- plot_histogram(var, data2, bw)
+p + scale_x_continuous(breaks = seq(0, pop_max, bw), minor_breaks = NULL, expand = c(0,0.75*bw))
+p + scale_x_log10()
+p + scale_x_sqrt()
+
+p + geom_histogram(binwidth = bw, data = subset(data, yearID = year & won_gg == 1, select = var), color = "black",
+               fill = "red", alpha = 0.5, boundary = 0)
+
+
+p <- ggplot(aes(x = var), data = df) + geom_histogram()
+
+
+
 # stats <- print(p)$data[[1]]
 #end dev
 
 
 server <- function(input, output) {
+  
+  data <- recactive({
+            
+  })
+  
+  
   
   output$pop_plot <- renderPlot({
     
